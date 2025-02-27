@@ -6,9 +6,7 @@ import SearchContextProvider from "@/contexts/search-context-provider";
 import prisma from "@/lib/db";
 import { Toaster } from "@/components/ui/sonner";
 
-export default async function Layout({
-  children,
-}: {
+export default async function Layout({ children }: {
   children: React.ReactNode;
 }) {
   const petsData = await prisma.pet.findMany();

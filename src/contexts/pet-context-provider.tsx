@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useState, useOptimistic } from "react";
-import { Pet } from "@/lib/types";
+import { createContext, useOptimistic, useState } from "react";
 import { addPet, deletePet, editPet } from "@/actions/actions";
 import { toast } from "sonner";
+import { PetEssential } from "@/lib/types";
+import { Pet } from "@prisma/client";
 
 type PetContextProviderProps = {
   data: Pet[];
@@ -14,18 +15,15 @@ type PetContextType = {
   pets: Pet[];
   selectedPetId: string | null;
   selectedPet: Pet | undefined;
-  handleAddPet: (newPet: Pet) => void;
-  handleEditPet: (petId: string, newPet: Pet) => void;
+  handleAddPet: (newPet: PetEssential) => void;
+  handleEditPet: (petId: string, newPet: PetEssential) => void;
   handleCheckoutPet: (id: string) => void;
   handleChangeSelectedPetId: (id: string) => void;
 };
 
 export const PetContext = createContext<PetContextType | null>(null);
 
-export default function PetContextProvider({
-  data,
-  children,
-}: PetContextProviderProps) {
+export default function PetContextProvider({ data, children }: PetContextProviderProps) {
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
 
   const [optimisticPets, setOptimisticPets] = useOptimistic(
@@ -49,10 +47,11 @@ export default function PetContextProvider({
     },
   );
   console.log(optimisticPets, "pets");
+
   const selectedPet = optimisticPets?.find((pet) => pet.id === selectedPetId);
   console.log(selectedPet, "selectedPet");
 
-  const handleAddPet = async (newPet) => {
+  const handleAddPet = async (newPet: PetEssential) => {
     setOptimisticPets({ action: "add", payload: newPet });
     const error = await addPet(newPet);
     if (error) {
@@ -60,7 +59,7 @@ export default function PetContextProvider({
       return;
     }
   };
-  const handleEditPet = async (petId: Pet["id"], newPetData) => {
+  const handleEditPet = async (petId: Pet["id"], newPetData: PetEssential) => {
     setOptimisticPets({ action: "edit", payload: { id: petId, newPetData } });
     const error = await editPet(petId, newPetData);
     if (error) {

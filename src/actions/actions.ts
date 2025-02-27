@@ -3,8 +3,10 @@
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { sleep } from "@/lib/utils";
+import {PetEssential} from "@/lib/types";
+import {Pet} from "@prisma/client";
 
-export async function addPet(petData) {
+export async function addPet(petData: unknown) {
   await sleep(2000);
   try {
     await prisma.pet.create({
@@ -19,7 +21,7 @@ export async function addPet(petData) {
   revalidatePath("app", "layout");
 }
 
-export async function editPet(petId, petData) {
+export async function editPet(petId: Pet["id"], petData: unknown) {
   await sleep(2000);
   try {
     await prisma.pet.update({
@@ -27,13 +29,13 @@ export async function editPet(petId, petData) {
         id: petId,
       },
       data: {
-        name: formData.get("name"),
-        ownerName: formData.get("ownerName"),
-        age: parseInt(formData.get("age")),
+        name: petData.get("name"),
+        ownerName: petData.get("ownerName"),
+        age: parseInt(petData.get("age")),
         imageUrl:
-          formData.get("imageUrl") ||
+            petData.get("imageUrl") ||
           "https://bytegrad.com/course-assets/react-nextjs/pet-placeholder.png",
-        notes: formData.get("notes"),
+        notes: petData.get("notes"),
       },
     });
   } catch (error) {
@@ -45,7 +47,7 @@ export async function editPet(petId, petData) {
   revalidatePath("app", "layout");
 }
 
-export async function deletePet(petId: string) {
+export async function deletePet(petId: Pet["id"]) {
   await sleep(2000);
   try {
     await prisma.pet.delete({
