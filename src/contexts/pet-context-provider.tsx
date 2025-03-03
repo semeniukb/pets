@@ -46,10 +46,8 @@ export default function PetContextProvider({ data, children }: PetContextProvide
       }
     },
   );
-  console.log(optimisticPets, "pets");
 
   const selectedPet = optimisticPets?.find((pet) => pet.id === selectedPetId);
-  console.log(selectedPet, "selectedPet");
 
   const handleAddPet = async (newPet: PetEssential) => {
     setOptimisticPets({ action: "add", payload: newPet });

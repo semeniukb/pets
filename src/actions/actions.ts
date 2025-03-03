@@ -3,14 +3,21 @@
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { sleep } from "@/lib/utils";
-import {PetEssential} from "@/lib/types";
-import {Pet} from "@prisma/client";
+import { petFormSchema, petIdSchema } from "@/lib/validations";
 
 export async function addPet(petData: unknown) {
   await sleep(2000);
+
+  const validatedPet = petFormSchema.safeParse(petData);
+  if (!validatedPet.success) {
+    return {
+      message: "Invalid pet data.",
+    };
+  }
+
   try {
     await prisma.pet.create({
-      data: petData,
+      data: validatedPet.data,
     });
   } catch (error) {
     return {
@@ -21,22 +28,24 @@ export async function addPet(petData: unknown) {
   revalidatePath("app", "layout");
 }
 
-export async function editPet(petId: Pet["id"], petData: unknown) {
+export async function editPet(petId: unknown, petData: unknown) {
   await sleep(2000);
+
+  const validatedPetId = petIdSchema.safeParse(petId);
+  const validatedPet = petFormSchema.safeParse(petData);
+
+  if (!validatedPetId.success || !validatedPet.success) {
+    return {
+      message: "Invalid pet data.",
+    };
+  }
+
   try {
     await prisma.pet.update({
       where: {
-        id: petId,
+        id: validatedPetId.data,
       },
-      data: {
-        name: petData.get("name"),
-        ownerName: petData.get("ownerName"),
-        age: parseInt(petData.get("age")),
-        imageUrl:
-            petData.get("imageUrl") ||
-          "https://bytegrad.com/course-assets/react-nextjs/pet-placeholder.png",
-        notes: petData.get("notes"),
-      },
+      data: validatedPet.data,
     });
   } catch (error) {
     return {
@@ -47,12 +56,21 @@ export async function editPet(petId: Pet["id"], petData: unknown) {
   revalidatePath("app", "layout");
 }
 
-export async function deletePet(petId: Pet["id"]) {
+export async function deletePet(petId: unknown) {
   await sleep(2000);
+
+  const validatedPetId = petIdSchema.safeParse(petId);
+
+  if (!validatedPetId.success) {
+    return {
+      message: "Invalid pet id.",
+    };
+  }
+
   try {
     await prisma.pet.delete({
       where: {
-        id: petId,
+        id: validatedPetId.data,
       },
     });
   } catch (error) {

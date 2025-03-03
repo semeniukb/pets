@@ -3,10 +3,11 @@
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { addPet, editPet } from "@/actions/actions";
 import PetFormBtn from "@/components/pet-form-btn";
-import { toast } from "sonner";
 import { usePetContext } from "@/lib/hooks";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { petFormSchema, TPetForm } from "@/lib/validations";
 
 type PetFormProps = {
   actionType: "add" | "edit";
@@ -14,26 +15,29 @@ type PetFormProps = {
 };
 
 export default function PetForm({
-  actionType,
-  onFormSubmission,
-}: PetFormProps) {
+                                  actionType,
+                                  onFormSubmission,
+                                }: PetFormProps) {
   const { selectedPet, handleAddPet, handleEditPet } = usePetContext();
 
-  const errors = {};
-  const register = () => {};
+  const { register, trigger, getValues, formState: { errors }, handleSubmit } = useForm<TPetForm>({
+    defaultValues: {
+      name: selectedPet?.name || "",
+      ownerName: selectedPet?.ownerName || "",
+      age: selectedPet?.age || "",
+      imageUrl: selectedPet?.imageUrl || "",
+      notes: selectedPet?.notes || "",
+    },
+    resolver: zodResolver(petFormSchema),
+  });
 
-  const formAction = async (formData) => {
+  const formAction = async () => {
+    const isValid = await trigger();
+    if (!isValid) return;
+
     onFormSubmission();
 
-    const petData = {
-      name: formData.get("name"),
-      ownerName: formData.get("ownerName"),
-      age: parseInt(formData.get("age")),
-      imageUrl:
-        formData.get("imageUrl") ||
-        "https://bytegrad.com/course-assets/react-nextjs/pet-placeholder.png",
-      notes: formData.get("notes"),
-    };
+    const petData = getValues();
 
     if (actionType === "add") {
       await handleAddPet(petData);
@@ -47,13 +51,13 @@ export default function PetForm({
       <div className="space-y-3">
         <div className="space-y-1">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" {...register("name")} />
+          <Input id="name" {...register("name")} />
           {errors.name && <p className="text-red-500">{errors.name.message}</p>}
         </div>
 
         <div className="space-y-1">
           <Label htmlFor="ownerName">Owner Name</Label>
-          <Input id="ownerName" name="ownerName" {...register("ownerName")} />
+          <Input id="ownerName" {...register("ownerName")} />
           {errors.ownerName && (
             <p className="text-red-500">{errors.ownerName.message}</p>
           )}
@@ -61,7 +65,7 @@ export default function PetForm({
 
         <div className="space-y-1">
           <Label htmlFor="imageUrl">Image Url</Label>
-          <Input id="imageUrl" name="imageUrl" {...register("imageUrl")} />
+          <Input id="imageUrl" {...register("imageUrl")} />
           {errors.imageUrl && (
             <p className="text-red-500">{errors.imageUrl.message}</p>
           )}
@@ -69,13 +73,13 @@ export default function PetForm({
 
         <div className="space-y-1">
           <Label htmlFor="age">Age</Label>
-          <Input id="age" name="age" {...register("age")} />
+          <Input id="age" {...register("age")} />
           {errors.age && <p className="text-red-500">{errors.age.message}</p>}
         </div>
 
         <div className="space-y-1">
           <Label htmlFor="notes">Notes</Label>
-          <Textarea id="notes" name="notes" {...register("notes")} />
+          <Textarea id="notes" {...register("notes")} />
           {errors.notes && (
             <p className="text-red-500">{errors.notes.message}</p>
           )}
