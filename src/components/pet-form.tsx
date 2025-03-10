@@ -20,13 +20,13 @@ export default function PetForm({
                                 }: PetFormProps) {
   const { selectedPet, handleAddPet, handleEditPet } = usePetContext();
 
-  const { register, trigger, getValues, formState: { errors }, handleSubmit } = useForm<TPetForm>({
+  const { register, trigger, getValues, formState: { errors } } = useForm<TPetForm>({
     defaultValues: {
-      name: selectedPet?.name || "",
-      ownerName: selectedPet?.ownerName || "",
-      age: selectedPet?.age || "",
-      imageUrl: selectedPet?.imageUrl || "",
-      notes: selectedPet?.notes || "",
+      name: selectedPet?.name,
+      ownerName: selectedPet?.ownerName,
+      age: selectedPet?.age,
+      imageUrl: selectedPet?.imageUrl,
+      notes: selectedPet?.notes,
     },
     resolver: zodResolver(petFormSchema),
   });

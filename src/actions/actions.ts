@@ -4,7 +4,16 @@ import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { sleep } from "@/lib/utils";
 import { petFormSchema, petIdSchema } from "@/lib/validations";
+import { signIn } from "@/lib/auth";
 
+// --Auth actions--
+export async function logIn(fromDate: FormData) {
+  const authData = Object.fromEntries(fromDate.entries());
+
+  await signIn("credentials", authData);
+}
+
+// --Pets actions--
 export async function addPet(petData: unknown) {
   await sleep(2000);
 
