@@ -4,13 +4,17 @@ import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { sleep } from "@/lib/utils";
 import { petFormSchema, petIdSchema } from "@/lib/validations";
-import { signIn } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 
 // --Auth actions--
 export async function logIn(fromDate: FormData) {
   const authData = Object.fromEntries(fromDate.entries());
 
   await signIn("credentials", authData);
+}
+
+export async function logOut() {
+  await signOut({ redirectTo: "/" });
 }
 
 // --Pets actions--

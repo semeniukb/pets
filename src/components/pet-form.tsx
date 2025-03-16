@@ -21,13 +21,13 @@ export default function PetForm({
   const { selectedPet, handleAddPet, handleEditPet } = usePetContext();
 
   const { register, trigger, getValues, formState: { errors } } = useForm<TPetForm>({
-    defaultValues: {
+    defaultValues: actionType === "edit" ? {
       name: selectedPet?.name,
       ownerName: selectedPet?.ownerName,
       age: selectedPet?.age,
       imageUrl: selectedPet?.imageUrl,
       notes: selectedPet?.notes,
-    },
+    } : undefined,
     resolver: zodResolver(petFormSchema),
   });
 
