@@ -3,15 +3,22 @@
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { sleep } from "@/lib/utils";
-import { petFormSchema, petIdSchema } from "@/lib/validations";
+import { authSchema, petFormSchema, petIdSchema } from "@/lib/validations";
 import { signIn, signOut } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { checkAuth, getPetById } from "@/lib/server-utils";
 
 // --Auth actions--
-export async function logIn(fromDate: FormData) {
-  await signIn("credentials", fromDate);
+export async function logIn(formData: unknown) {
+
+  if (!(formData instanceof FormData)) {
+    return {
+      message: "Invalid form data.",
+    };
+  }
+
+  await signIn("credentials", formData);
 
   redirect("app/dashboard");
 }
@@ -20,17 +27,33 @@ export async function logOut() {
   await signOut({ redirectTo: "/" });
 }
 
-export async function signUp(fromDate: FormData) {
-  const hashedPassword = await bcrypt.hash(fromDate.get("password") as string, 10);
+export async function signUp(formData: unknown) {
+  if (!(formData instanceof FormData)) {
+    return {
+      message: "Invalid form data.",
+    };
+  }
+
+  const formDataEntries = Object.fromEntries(formData.entries());
+  const validatedData = authSchema.safeParse(formDataEntries);
+
+  if (!validatedData.success) {
+    return {
+      message: "Invalid form data.",
+    };
+  }
+  const { password, email } = validatedData.data;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.create({
     data: {
-      email: fromDate.get("email") as string,
+      email,
       hashedPassword,
     },
   });
 
-  await signIn("credentials", fromDate);
+  await signIn("credentials", formData);
 }
 
 // --Pets actions--
@@ -82,10 +105,14 @@ export async function editPet(petId: unknown, petData: unknown) {
 
   const pet = await getPetById(validatedPetId.data);
   if (!pet) {
-    return "Pet not found.";
+    return {
+      message: "Pet not found.",
+    };
   }
   if (pet.userId !== session.user.id) {
-    return "Not authorized";
+    return {
+      message: "Not authorized",
+    };
   }
 
   try {
@@ -119,10 +146,14 @@ export async function deletePet(petId: unknown) {
 
   const pet = await getPetById(validatedPetId.data);
   if (!pet) {
-    return "Pet not found.";
+    return {
+      message: "Pet not found.",
+    };
   }
   if (pet.userId !== session.user.id) {
-    return "Not authorized";
+    return {
+      message: "Not authorized",
+    };
   }
 
   try {
