@@ -2,9 +2,10 @@
 
 import H1 from "@/components/h1";
 import { Button } from "@/components/ui/button";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { createCheckoutSession } from "@/actions/actions";
+import { useSession } from "next-auth/react";
 
 export default function Page({
                                searchParams,
@@ -33,9 +34,12 @@ export default function Page({
 
       {!searchParams.success && (
         <Button
+          onClick={async () => {
+            startTransition(async () => await createCheckoutSession());
+          }}
           disabled={isPending}
         >
-          Buy lifetime access for $299
+          Buy lifetime access for $49
         </Button>
       )}
 
